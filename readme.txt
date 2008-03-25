@@ -3,7 +3,7 @@ Contributors: Viper007Bond
 Donate link: http://www.viper007bond.com/donate/
 Tags: dashboard, widgets
 Requires at least: 2.5
-Stable tag: 1.0.0
+Stable tag: trunk
 
 Widget manager for the WordPress 2.5+ dashboard.
 

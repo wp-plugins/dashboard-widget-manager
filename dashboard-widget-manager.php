@@ -124,7 +124,7 @@ class DashboardWidgetManager {
 		$sidebar = $this->sidebar; // Just to use the same var as /wp-admin/widgets.php for consistency
 
 		$sidebar_widget_count = count($sidebars_widgets[$sidebar]);
-		$sidebar_info_text = __ngettext( 'You are using %1$s widget on the dashboard.', 'You are using %1$s widgets on the dashboard.', $sidebar_widget_count );
+		$sidebar_info_text = __ngettext( 'You are using %1$s widget on the dashboard.', 'You are using %1$s widgets on the dashboard.', $sidebar_widget_count, 'dashwidman' );
 		$sidebar_info_text = sprintf( wp_specialchars( $sidebar_info_text ), "<span id='widget-count'>$sidebar_widget_count</span>", $wp_registered_sidebars[$sidebar]['name'] );
 
 		# DEBUG
