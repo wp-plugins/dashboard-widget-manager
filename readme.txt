@@ -9,7 +9,7 @@ Widget manager for the WordPress 2.5+ dashboard.
 
 == Description ==
 
-WordPress 2.5 introduces a widgetized dashboard, but unforantely no manager for it to rearrange and remove widgets. This plugin fills that need by creating a new admin page very similiar to the new sidebar widget manager.
+WordPress 2.5 introduces a widgetized dashboard, but unfortunately  no manager for it to rearrange and remove widgets. This plugin fills that need by creating a new admin page very similiar to the new sidebar widget manager.
 
 == Installation ==
 
