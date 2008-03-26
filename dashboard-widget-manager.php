@@ -5,7 +5,7 @@
 Plugin Name:  Dashboard Widget Manager
 Plugin URI:   http://www.viper007bond.com/wordpress-plugins/dashboard-widget-manager/
 Description:  Allows you to re-order as well as hide widgets on the WordPress 2.5+ dashboard.
-Version:      1.0.0
+Version:      1.0.1
 Author:       Viper007Bond
 Author URI:   http://www.viper007bond.com/
 
@@ -37,7 +37,8 @@ class DashboardWidgetManager {
 
 				add_action( 'admin_head',  array(&$this, 'admin_head') );
 
-				if ( !empty($_POST) ) add_action( 'init', array(&$this, 'HandleFormPOST') );
+				if ( 'POST' == $_SERVER['REQUEST_METHOD'] && isset($_POST['sidebar']) && $_POST['sidebar'] == $this->sidebar )
+					add_action( 'init', array(&$this, 'HandleFormPOST') );
 			}
 		}
 	}
