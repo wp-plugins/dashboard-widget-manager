@@ -4,8 +4,8 @@
 
 Plugin Name:  Dashboard Widget Manager
 Plugin URI:   http://www.viper007bond.com/wordpress-plugins/dashboard-widget-manager/
-Description:  Allows you to re-order as well as hide widgets on the WordPress 2.5+ dashboard.
-Version:      1.1.0
+Description:  Allows you to re-order as well as hide widgets on the WordPress 2.5+ dashboard. Also makes widget options on a per-user basis.
+Version:      1.2.0
 Author:       Viper007Bond
 Author URI:   http://www.viper007bond.com/
 
@@ -24,21 +24,29 @@ class DashboardWidgetManager {
 		// Hook into the admin menu
 		add_action( 'admin_menu', array(&$this, 'AddAdminMenus') );
 
-		// We need to add a filter to the dashboard, but only later in the page load. "activity_box_end" works nicely.
-		add_action( 'activity_box_end', array(&$this, 'register_pre_option_sidebars_widgets') );
+		// A semi-dirty way of only doing stuff if we're on the dashboard or this plugin's page
+		if ( $this->parent == basename($_SERVER['PHP_SELF']) ) {
+			// These hooks are for hacking in per-user widget options
+			add_filter( 'pre_option_dashboard_widget_options', array(&$this, 'pre_option_dashboard_widget_options') );
+			add_filter( 'update_option_dashboard_widget_options', array(&$this, 'update_option_dashboard_widget_options'), 10, 2 );
+			add_filter( 'add_option_dashboard_widget_options', array(&$this, 'add_option_dashboard_widget_options'), 10, 2 );
 
-		// A semi-dirty way of only doing stuff if we're on this plugin's page
-		if ( $this->parent == basename($_SERVER['PHP_SELF']) && $_GET['page'] == $this->stub ) {
-			require_once(ABSPATH . 'wp-admin/includes/dashboard.php');
-			require_once(ABSPATH . 'wp-admin/includes/widgets.php');
+			// We need to add a filter to the dashboard, but only later in the page load. "activity_box_end" works nicely.
+			add_action( 'activity_box_end', array(&$this, 'register_pre_option_sidebars_widgets') );
 
-			wp_enqueue_script( array( 'wp-lists', 'admin-widgets' ) );
+			if ( $_GET['page'] == $this->stub ) {
+				require_once(ABSPATH . 'wp-admin/includes/dashboard.php');
+				require_once(ABSPATH . 'wp-admin/includes/widgets.php');
 
-			add_action( 'admin_head',  array(&$this, 'admin_head') );
-			add_filter( 'pre_option_sidebars_widgets', array(&$this, 'pre_option_sidebars_widgets') );
+				wp_enqueue_script( array( 'wp-lists', 'admin-widgets' ) );
 
-			if ( 'POST' == $_SERVER['REQUEST_METHOD'] && isset($_POST['sidebar']) && $_POST['sidebar'] == $this->sidebar )
-				add_action( 'init', array(&$this, 'HandleFormPOST') );
+				add_action( 'admin_head',  array(&$this, 'admin_head') );
+
+				add_filter( 'pre_option_sidebars_widgets', array(&$this, 'pre_option_sidebars_widgets') );
+
+				if ( 'POST' == $_SERVER['REQUEST_METHOD'] && isset($_POST['sidebar']) && $_POST['sidebar'] == $this->sidebar )
+					add_action( 'init', array(&$this, 'HandleFormPOST') );
+			}
 		}
 	}
 
@@ -62,7 +70,7 @@ class DashboardWidgetManager {
 
 
 	// This filter function modifies the value that get_option('sidebars_widgets') returns since dynamic_sidebar() lacks a hook
-	// This filter function is only registered when the manage page is active -- it doesn't affect it otherwise
+	// This filter function is only registered when the dashboard widgets are being used -- it doesn't affect it otherwise
 	function pre_option_sidebars_widgets() {
 		global $user_ID;
 
@@ -90,6 +98,54 @@ class DashboardWidgetManager {
 	}
 
 
+	// This filter function modifies the value that get_option('dashboard_widget_options') returns to allow per-user settings
+	// This filter function is only registered when the dashboard widgets are being used -- it doesn't affect it otherwise
+	function pre_option_dashboard_widget_options() {
+		global $user_ID;
+
+		// To make life easier and to not modifiy the original "dashboard_widget_options" structure,
+		// per-user options are stored in a different options name
+		$dashboard_widget_options = get_option('dashboard_widget_peruser_options');
+
+		$dashboard_widget_options = $dashboard_widget_options[$user_ID];
+
+		// If this user doesn't have their own set of options, use the original options value
+		if ( !is_array($dashboard_widget_options) || empty($dashboard_widget_options) ) {
+			// Remove this function from the filer list so we can get the real value...
+			remove_filter( 'pre_option_dashboard_widget_options', array(&$this, 'pre_option_dashboard_widget_options') );
+
+			// Grab that real value...
+			$dashboard_widget_options = get_option('dashboard_widget_options');
+
+			// And add this filter back into place
+			add_filter( 'pre_option_dashboard_widget_options', array(&$this, 'pre_option_dashboard_widget_options') );
+		}
+
+		return $dashboard_widget_options;
+	}
+
+
+	// So that we can use one function for both the update_option() and add_option() hooks, we need to use wrappers
+	function update_option_dashboard_widget_options( $oldvalue, $newvalue ) {
+		$this->addupdate_option_dashboard_widget_options( $newvalue );
+	}
+	function add_option_dashboard_widget_options( $name, $value ) {
+		$this->addupdate_option_dashboard_widget_options( $value );
+	}
+
+
+	// When add/update_option('dashboard_widget_options') is called, copy the new values to our per-user option
+	// This function isn't called directly, but rather by the two wrapper functions above
+	function addupdate_option_dashboard_widget_options( $value ) {
+		global $user_ID;
+
+		// Update the per-user option with this user's new perferences
+		$dashboard_widget_options = get_option('dashboard_widget_peruser_options');
+		$dashboard_widget_options[$user_ID] = $value;
+		update_option( 'dashboard_widget_peruser_options', $dashboard_widget_options );
+	}
+
+
 	// Handle the POST results from our form
 	function HandleFormPOST() {
 		check_admin_referer( 'edit-sidebar_' . $_POST['sidebar'] );
@@ -111,11 +167,17 @@ class DashboardWidgetManager {
 	function ManagePage() {
 		global $user_ID, $wp_registered_widgets, $sidebars_widgets, $wp_registered_widget_controls, $wp_registered_sidebars;
 
-		// Reset the widgets to the defaults
-		if ( 'defaults' == $_GET['message'] ) {
+		// Handle default resets
+		if ( 'defaultwidgets' == $_GET['message'] ) {
 			$widgets = get_option( 'dashboard_widget_order' );
 			unset( $widgets[$user_ID] );
 			update_option( 'dashboard_widget_order', $widgets );
+		}
+		elseif ( 'defaultoptions' == $_GET['message'] ) {
+			$options = get_option( 'dashboard_widget_peruser_options' );
+			unset( $options[$user_ID] );
+			update_option( 'dashboard_widget_peruser_options', $options );
+			update_option( 'dashboard_widget_options', array() );
 		}
 
 		$sidebars_widgets = wp_get_sidebars_widgets();
@@ -141,12 +203,15 @@ class DashboardWidgetManager {
 		//print_r( $sidebars_widgets );
 		//print_r( $wp_registered_widgets );
 		//print_r( $wp_registered_widget_controls );
+		//print_r( get_option('dashboard_widget_options') );
+		//print_r( get_option('dashboard_widget_peruser_options') );
 		echo '</pre>';
 		*/
 
 		$messages = array(
 			'updated' => __('Changes saved.'),
-			'defaults' => __("Dashboard reset to it's default configuration.", 'dashwidman'),
+			'defaultwidgets' => __("Dashboard widgets reset to their default order.", 'dashwidman'),
+			'defaultoptions' => __("Dashboard widgets reset to their default options.", 'dashwidman'),
 		);
 
 		if ( isset($_GET['message']) && isset($messages[$_GET['message']]) ) : ?>
@@ -159,7 +224,7 @@ class DashboardWidgetManager {
 
 	<h2><?php _e( 'Dashboard Widgets', 'dashwidman' ); ?></h2>
 
-	<p><?php printf( __( "If you'd like to reset the dashboard to the default configuration, just <a href='%s'>click here</a>.", 'dashwidman'), add_query_arg( 'message', 'defaults' ) ); ?></p>
+	<p><?php printf( __( "If you'd like to restore the default widgets order, just <a href='%s'>click here</a>. You can also reset all widget options to their defaults by <a href='%s'>clicking here</a>.", 'dashwidman'), add_query_arg( 'message', 'defaultwidgets' ), add_query_arg( 'message', 'defaultoptions' ) ); ?></p>
 
 	<div class="widget-liquid-left-holder">
 	<div id="available-widgets-filter" class="widget-liquid-left">

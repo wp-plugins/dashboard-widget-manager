@@ -56,6 +56,10 @@ Sure! I do this in my free time and I appreciate all donations that I get. It ma
 
 == ChangeLog ==
 
+**Version 1.2.0**
+
+* Store dashboard widgets options on a per-user basis. Now you and all of your fellow administrators can have seperate widget options. Non-administrators will see the configuration of the last person to update (I couldn't think of a better solution).
+
 **Version 1.1.0**
 
 * Store dashboard widgets order on a per-user basis.
