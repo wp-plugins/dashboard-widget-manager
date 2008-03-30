@@ -56,6 +56,16 @@ Sure! I do this in my free time and I appreciate all donations that I get. It ma
 
 == ChangeLog ==
 
+**Version 1.1.0**
+
+* Store dashboard widgets order on a per-user basis.
+* Make the sidebar widget count on the dashboard accurate (it was combining the sidebar and dashboard widget counts). Props to [Bob](http://www.nj-arp.org/blog/) for pointing this out.
+* Missed translation string.
+
+**Version 1.0.1**
+
+* Accidental version bump when commiting a minor POST detection code improvement.
+
 **Version 1.0.0**
 
 * Initial release.

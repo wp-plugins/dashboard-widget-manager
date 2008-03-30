@@ -5,7 +5,7 @@
 Plugin Name:  Dashboard Widget Manager
 Plugin URI:   http://www.viper007bond.com/wordpress-plugins/dashboard-widget-manager/
 Description:  Allows you to re-order as well as hide widgets on the WordPress 2.5+ dashboard.
-Version:      1.0.1
+Version:      1.1.0
 Author:       Viper007Bond
 Author URI:   http://www.viper007bond.com/
 
@@ -24,29 +24,34 @@ class DashboardWidgetManager {
 		// Hook into the admin menu
 		add_action( 'admin_menu', array(&$this, 'AddAdminMenus') );
 
-		// A semi-dirty way of only setting up this plugin if we're on the dashboard or this plugin's page
-		if ( $this->parent == basename($_SERVER['PHP_SELF']) && ( empty($_GET['page']) || $this->stub == $_GET['page'] ) ) {
+		// We need to add a filter to the dashboard, but only later in the page load. "activity_box_end" works nicely.
+		add_action( 'activity_box_end', array(&$this, 'register_pre_option_sidebars_widgets') );
+
+		// A semi-dirty way of only doing stuff if we're on this plugin's page
+		if ( $this->parent == basename($_SERVER['PHP_SELF']) && $_GET['page'] == $this->stub ) {
+			require_once(ABSPATH . 'wp-admin/includes/dashboard.php');
+			require_once(ABSPATH . 'wp-admin/includes/widgets.php');
+
+			wp_enqueue_script( array( 'wp-lists', 'admin-widgets' ) );
+
+			add_action( 'admin_head',  array(&$this, 'admin_head') );
 			add_filter( 'pre_option_sidebars_widgets', array(&$this, 'pre_option_sidebars_widgets') );
 
-			// Manage page only stuff
-			if ( $_GET['page'] == $this->stub ) {
-				require_once(ABSPATH . 'wp-admin/includes/dashboard.php');
-				require_once(ABSPATH . 'wp-admin/includes/widgets.php');
-
-				wp_enqueue_script( array( 'wp-lists', 'admin-widgets' ) );
-
-				add_action( 'admin_head',  array(&$this, 'admin_head') );
-
-				if ( 'POST' == $_SERVER['REQUEST_METHOD'] && isset($_POST['sidebar']) && $_POST['sidebar'] == $this->sidebar )
-					add_action( 'init', array(&$this, 'HandleFormPOST') );
-			}
+			if ( 'POST' == $_SERVER['REQUEST_METHOD'] && isset($_POST['sidebar']) && $_POST['sidebar'] == $this->sidebar )
+				add_action( 'init', array(&$this, 'HandleFormPOST') );
 		}
+	}
+
+
+	// Register our pre_option_sidebars_widgets hook (in it's own function so it can be called later to avoid screwing up the total widget count)
+	function register_pre_option_filter() {
+		add_filter( 'pre_option_sidebars_widgets', array(&$this, 'pre_option_sidebars_widgets') );
 	}
 
 
 	// Register our new menu page with WordPress
 	function AddAdminMenus() {
-		add_submenu_page( $this->parent, __('Dashboard Widget Manager', 'dashwidman'), 'Widgets', 'manage_options', $this->stub, array(&$this, 'ManagePage') );
+		add_submenu_page( $this->parent, __('Dashboard Widget Manager', 'dashwidman'), __('Widgets'), 'manage_options', $this->stub, array(&$this, 'ManagePage') );
 	}
 
 
@@ -59,6 +64,8 @@ class DashboardWidgetManager {
 	// This filter function modifies the value that get_option('sidebars_widgets') returns since dynamic_sidebar() lacks a hook
 	// This filter function is only registered when the manage page is active -- it doesn't affect it otherwise
 	function pre_option_sidebars_widgets() {
+		global $user_ID;
+
 		// Remove this function from the filer list so we can get the real value...
 		remove_filter( 'pre_option_sidebars_widgets', array(&$this, 'pre_option_sidebars_widgets') );
 
@@ -73,8 +80,8 @@ class DashboardWidgetManager {
 		$widgets = get_option( 'dashboard_widget_order' );
 
 		// If we have a custom widget order, use it, otherwise use the default order
-		if ( is_array($widgets) ) {
-			$sidebars_widgets[$this->sidebar] = $widgets;
+		if ( is_array($widgets[$user_ID]) ) {
+			$sidebars_widgets[$this->sidebar] = $widgets[$user_ID];
 		} else {
 			$sidebars_widgets[$this->sidebar] = $GLOBALS['wp_dashboard_sidebars'][$this->sidebar];
 		}
@@ -87,14 +94,10 @@ class DashboardWidgetManager {
 	function HandleFormPOST() {
 		check_admin_referer( 'edit-sidebar_' . $_POST['sidebar'] );
 
-		/*
-		echo '<pre>';
-		print_r($_POST);
-		exit('</pre>');
-		*/
+		global $user_ID;
 
-		$widgets = $_POST['widget-id'];
-		if ( !is_array($widgets) ) $widgets = array();
+		$widgets = array();
+		$widgets[$user_ID] = $_POST['widget-id'];
 
 		update_option( 'dashboard_widget_order', $widgets );
 		
@@ -106,10 +109,14 @@ class DashboardWidgetManager {
 
 	// Output the contents of our manage page. It's based heavily on /wp-admin/widgets.php
 	function ManagePage() {
-		global $wp_registered_widgets, $sidebars_widgets, $wp_registered_widget_controls, $wp_registered_sidebars;
+		global $user_ID, $wp_registered_widgets, $sidebars_widgets, $wp_registered_widget_controls, $wp_registered_sidebars;
 
 		// Reset the widgets to the defaults
-		if ( 'defaults' == $_GET['message'] ) delete_option( 'dashboard_widget_order' );
+		if ( 'defaults' == $_GET['message'] ) {
+			$widgets = get_option( 'dashboard_widget_order' );
+			unset( $widgets[$user_ID] );
+			update_option( 'dashboard_widget_order', $widgets );
+		}
 
 		$sidebars_widgets = wp_get_sidebars_widgets();
 		if ( empty( $sidebars_widgets ) )
