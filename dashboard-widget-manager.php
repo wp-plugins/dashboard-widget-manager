@@ -44,7 +44,7 @@ class DashboardWidgetManager {
 
 
 	// Register our pre_option_sidebars_widgets hook (in it's own function so it can be called later to avoid screwing up the total widget count)
-	function register_pre_option_filter() {
+	function register_pre_option_sidebars_widgets() {
 		add_filter( 'pre_option_sidebars_widgets', array(&$this, 'pre_option_sidebars_widgets') );
 	}
 
