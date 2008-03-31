@@ -11,6 +11,8 @@ Widget manager for the WordPress 2.5+ dashboard.
 
 WordPress 2.5 introduces a widgetized dashboard, but unfortunately  no manager for it to rearrange and remove widgets. This plugin fills that need by creating a new admin page very similiar to the new sidebar widget manager.
 
+It also makes it so that both widget order and widget options are stored on a per-administator basis rather than everyone sharing a common configuration. Great for those multi-administrator blogs.
+
 == Installation ==
 
 ###Updgrading From A Previous Version###
@@ -58,7 +60,7 @@ Sure! I do this in my free time and I appreciate all donations that I get. It ma
 
 **Version 1.2.0**
 
-* Store dashboard widgets options on a per-user basis. Now you and all of your fellow administrators can have seperate widget options. Non-administrators will see the configuration of the last person to update (I couldn't think of a better solution).
+* Store dashboard widgets options on a per-user basis. Now you and all of your fellow administrators can have seperate widget options. Non-administrators will see the configuration of the last person to update. This how WordPress does it on it's own and I couldn't think of a better solution.
 
 **Version 1.1.0**
 
