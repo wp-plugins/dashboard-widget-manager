@@ -58,6 +58,11 @@ Sure! I do this in my free time and I appreciate all donations that I get. It ma
 
 == ChangeLog ==
 
+**Version 1.2.1**
+
+* I screwed up on the per-user widget order. When one user saved, it'd erase the other users' orders.
+* Fixed bug that didn't allow for no widgets to be displayed on the dashboard. Thanks to [Kimmono](http://kservik.com/) for pointing this out.
+
 **Version 1.2.0**
 
 * Store dashboard widgets options on a per-user basis. Now you and all of your fellow administrators can have seperate widget options. Non-administrators will see the configuration of the last person to update. This how WordPress does it on it's own and I couldn't think of a better solution.
@@ -65,7 +70,7 @@ Sure! I do this in my free time and I appreciate all donations that I get. It ma
 **Version 1.1.0**
 
 * Store dashboard widgets order on a per-user basis.
-* Make the sidebar widget count on the dashboard accurate (it was combining the sidebar and dashboard widget counts). Props to [Bob](http://www.nj-arp.org/blog/) for pointing this out.
+* Make the sidebar widget count on the dashboard accurate (it was combining the sidebar and dashboard widget counts). Thanks to [Bob](http://www.nj-arp.org/blog/) for pointing this out.
 * Missed translation string.
 
 **Version 1.0.1**

@@ -5,7 +5,7 @@
 Plugin Name:  Dashboard Widget Manager
 Plugin URI:   http://www.viper007bond.com/wordpress-plugins/dashboard-widget-manager/
 Description:  Allows you to re-order as well as hide widgets on the WordPress 2.5+ dashboard. Also makes widget options on a per-user basis.
-Version:      1.2.0
+Version:      1.2.1
 Author:       Viper007Bond
 Author URI:   http://www.viper007bond.com/
 
@@ -17,6 +17,8 @@ class DashboardWidgetManager {
 	var $sidebar = 'wp_dashboard'; // This should never change as it's defined by WordPress
 
 	function DashboardWidgetManager() {
+		if ( !file_exists(ABSPATH . 'wp-admin/includes/dashboard.php') ) return; // Requires WP 2.5+
+
 		// Load up the localization file if we're using WordPress in a different language
 		// Place it in this plugin's folder and name it "dashwidman-[value in wp-config].mo"
 		load_plugin_textdomain( 'dashwidman', '/wp-content/plugins/dashboard-widget-manager' );
@@ -152,8 +154,9 @@ class DashboardWidgetManager {
 
 		global $user_ID;
 
-		$widgets = array();
-		$widgets[$user_ID] = $_POST['widget-id'];
+		$widgets = get_option( 'dashboard_widget_order' );
+
+		$widgets[$user_ID] = ( is_array($_POST['widget-id']) ) ? $_POST['widget-id'] : array();
 
 		update_option( 'dashboard_widget_order', $widgets );
 		
@@ -292,10 +295,5 @@ class DashboardWidgetManager {
 
 // Start this plugin once all other plugins are fully loaded
 add_action( 'plugins_loaded', create_function( '', 'global $DashboardWidgetManager; $DashboardWidgetManager = new DashboardWidgetManager();' ) );
-
-
-// Cause a fatal error on activation on purpose if the user's WordPress version is too old
-if ( !file_exists(ABSPATH . 'wp-admin/includes/dashboard.php') )
-	exit( sprintf( __('Dashboard Widget Manager requires WordPress 2.5.0 or newer. <a href="%s" target="_blank">Please update!</a>', 'dashwidman'), 'http://codex.wordpress.org/Upgrading_WordPress' ) );
 
 ?>
