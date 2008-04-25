@@ -9,9 +9,11 @@ Widget manager for the WordPress 2.5+ dashboard.
 
 == Description ==
 
-WordPress 2.5 introduces a widgetized dashboard, but unfortunately  no manager for it to rearrange and remove widgets. This plugin fills that need by creating a new admin page very similiar to the new sidebar widget manager.
+WordPress 2.5 introduces a widgetized dashboard, but unfortunately no manager for it to rearrange and remove widgets. This plugin fills that need by creating a new admin page very similiar to the new sidebar widget manager.
 
-It also makes it so that both widget order and widget options are stored on a per-administator basis rather than everyone sharing a common configuration. Great for those multi-administrator blogs.
+It also makes it so that both widget order and widget options are stored on a per-user basis rather than everyone sharing a common configuration. Great for those multi-user blogs.
+
+Via this plugin's settings page, you can also choose a default dashboard for users without a customized dashboard of their own and disable non-admins from customizing their dashboard effectively forcing all non-admins to see the dashboard of your choosing.
 
 == Installation ==
 
@@ -41,6 +43,8 @@ Then just visit your admin area and activate the plugin.
 
 Visit the new admin page. It's titled "Widgets" and is available from your dashboard page.
 
+You can find the admin-only settings page at Settings -> Dashboard Widgets.
+
 == Frequently Asked Questions ==
 
 = Does this plugin support other languages? =
@@ -57,6 +61,14 @@ Sure! I do this in my free time and I appreciate all donations that I get. It ma
 2. Dashboard with a custom widget order ("Other WordPress News" is normally at the very bottom)
 
 == ChangeLog ==
+
+**Version 1.3.0**
+
+* Options page for setting defaults and permissions.
+* Allow non-admins to rearrage their dashboard as well as edit the widgets on their dashboard. **Widget authors:** see plugin source for details on making your widget editable by non-admins.
+* Custom text and RSS widgets until I get multi-instance widgets working (i.e. the default text and RSS widgets).
+* Added widget descriptions.
+* Lots of internal improvements.
 
 **Version 1.2.1**
 
