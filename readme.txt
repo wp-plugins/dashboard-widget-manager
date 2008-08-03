@@ -62,6 +62,10 @@ Sure! I do this in my free time and I appreciate all donations that I get. It ma
 
 == ChangeLog ==
 
+**Version 1.3.1**
+
+* Add compatiblity for WordPress 2.6.x by loading the widgets stylesheet. Sorry it took so long.
+
 **Version 1.3.0**
 
 * Options page for setting defaults and permissions.

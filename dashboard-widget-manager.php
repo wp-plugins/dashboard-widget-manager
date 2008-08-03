@@ -5,14 +5,14 @@
 Plugin Name:  Dashboard Widget Manager
 Plugin URI:   http://www.viper007bond.com/wordpress-plugins/dashboard-widget-manager/
 Description:  Greatly enhances your WordPress 2.5+ dashboard by allowing widget re-ordering and storage of preferences on a per-user basis.
-Version:      1.3.0
+Version:      1.3.1
 Author:       Viper007Bond
 Author URI:   http://www.viper007bond.com/
 
 **************************************************************************/
 
 class DashboardWidgetManager {
-	var $version = '1.3.0';
+	var $version = '1.3.1';
 	var $stub = 'manage-widgets';
 	var $parent = 'index.php';
 	var $sidebar = 'wp_dashboard'; // This should never change as it's defined by WordPress
@@ -98,6 +98,7 @@ class DashboardWidgetManager {
 				require_once( ABSPATH . 'wp-admin/includes/template.php' );
 
 				wp_enqueue_script( array( 'wp-lists', 'admin-widgets' ) );
+				wp_admin_css( 'widgets' );
 
 				add_action( 'admin_head', array(&$this, 'HideWidgetControlsViaCSS') );
 
@@ -524,7 +525,6 @@ class DashboardWidgetManager {
 	</table>
 
 	<p class="submit">
-		<input type="hidden" name="regusersonly_action" value="update" />
 		<input type="hidden" name="dashwidman-action" value="options" />
 		<input type="submit" name="Submit" value="<?php _e('Save Changes') ?>" />
 	</p>
